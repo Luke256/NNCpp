@@ -1,12 +1,3 @@
-# NNCpp
-
-簡易的なヘッダーオンリーのニューラルネットワークライブラリ
-
-C++17以上あれば多分動く
-
-# コード例
-
-```C++
 #include <iostream>
 #include <vector>
 #include "include/NNCpp.hpp"
@@ -65,4 +56,3 @@ int main () {
     }
 
 }
-```

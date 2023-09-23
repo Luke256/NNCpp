@@ -1,7 +1,19 @@
-# pragma once
+#pragma once
+#include "lib/Cmat/Cmat.hpp"
 
-# include "Loss/Abstract.hpp"
+namespace NNCpp
+{
 
-# include "Loss/Abs.hpp"
+namespace Loss
+{
 
-# include "Loss/CrossEntropy.hpp"
+class Loss
+{
+public:
+    virtual double forward(const Cmat::Matrix& x, const Cmat::Matrix& t) = 0;
+    virtual Cmat::Matrix backward() = 0;
+};
+
+}
+
+}

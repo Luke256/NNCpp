@@ -1,6 +1,8 @@
-# pragma once
-
-# include "Abstract.hpp"
+#pragma once
+#include <math.h>
+#include <cmath>
+#include "../Loss.hpp"
+#include "../utils.hpp"
 
 namespace NNCpp
 {
@@ -8,29 +10,46 @@ namespace NNCpp
 namespace Loss
 {
 
-class CrossEntropy : public AbstractLoss
+class CrossEntropy: public Loss
 {
-public:
-    CrossEntropy(){}
-
-    Data forward(const Data& x, const Data& target) override
-    {
-        last_x = x, last_target = target;
-        Data loss = -nc::sum(target*nc::log(x+1e-7), nc::Axis::COL);
-        uint32 batch_size = x.shape().rows;
-        return nc::divide(loss, (double)batch_size);
-    }
-
-    Data backward() override
-    {
-        Data diff = -nc::divide(last_target, (last_x+1e-7));
-        return diff;
-    }
-
 private:
-    Data last_x, last_target;
+    Cmat::Matrix m_back;
+    BS::thread_pool pool = BS::thread_pool(std::thread::hardware_concurrency());
+public:
+    // x: predict, t: answer
+    double forward(const Cmat::Matrix& x, const Cmat::Matrix& t) override
+    {
+        auto err = x;
+        
+        for (int i = 0; i < err.m_height; ++i)
+        {
+            pool.push_task([&](int i){
+                for (int j = 0; j < err.m_width; ++j)
+                {
+                    if (isnan(log(err[i][j]+0.0001)))
+                    {
+                        std::cout << err[i][j] << std::endl;
+                        assert(false);
+                    }
+                    err[i][j] = log(err[i][j]+0.0001);
+                }
+            }, i);
+        }
+        pool.wait_for_tasks();
+
+        err *= t;
+
+        m_back = x-t;
+
+        return err.sum() / err.m_height * -1;
+    }
+
+    Cmat::Matrix backward() override
+    {
+        return m_back;
+    }
 };
 
-};
+}
 
-};
+}
