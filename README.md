@@ -4,6 +4,48 @@
 
 C++17以上あれば多分動く
 
+# 利用方法
+当リポジトリ内の`include`フォルダを適当な場所に置くと、`include/NNCpp.hpp`をincludeすることで利用できます。
+
+## データ型
+行列用のクラス`Cmat::Matrix`を実装しています。これは内部的には`std::vector<std::vector<double>>`です。
+
+## モデル構築
+現在は`NNCpp::SequentialModel`クラスを提供しています。これはKerasでの`keras.models.Sequential`に相当し、単純に層を重ねていくものです。
+そのため、分岐の含むような複雑なモデルは自分で定義する必要があります。
+
+レイヤーの追加は`NNCpp::SequentialModel::addLayer`で可能です。テンプレート引数にレイヤーの種類、引数にレイヤーの情報(`NNCpp::Layers::InitData`)を渡します。
+
+使用時にはモデルのコンパイルが必要です。`NNCpp::SequentialModel::compile`にて損失関数、及び最適化関数を指定し、最適化関数に用いるパラメータ(`NNCpp::Optimizer::InitData`)を引数に渡します。
+
+## レイヤー
+便宜上、活性化関数もレイヤーとして実装されています。
+### NNCpp::Layers::Input
+入力層です。SequentialModelは最初の層がInputであることを想定しています。
+
+### NNCpp::Layers::Dense
+全結合層です。SequentialModelにこのレイヤーを追加する際は、出力数(`unit`)を指定します。
+
+### NNCpp::Layers::ReLU
+ReLU関数です。初期化時には特に引数はいりません。
+
+### NNCpp::Layers::SoftMax
+SoftMax関数です。
+**学習時に使用する際は、損失関数に後述する交差エントロピー誤差を使用してください。**
+
+## 損失関数
+損失関数は交差エントロピー誤差と二乗誤差があります。
+
+## 最適化関数
+Adamは実装していません
+
+### 確率的勾配降下法
+SGDが`NNCpp::Optimizer::SGD`にて提供されています。初期化時には学習率を指定します。
+
+## モデルの学習
+`keras.models.Sequential.fit`のような自動で学習を行う関数はありません。
+forward関数で推論し、evalで誤差を計算、backwardで誤差逆伝播を行う機能があります。
+
 # コード例
 
 ```C++
